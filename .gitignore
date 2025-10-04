@@ -1,0 +1,5 @@
+.venv
+file222.xlsx
+/.env
+/.pyc
+/__pycache__
