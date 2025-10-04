@@ -265,6 +265,20 @@ for col in percentage_cols:
 print(f"\\nCleaning complete. New dtypes:\\n{df[columns_to_clean].dtypes}")
 ```
 
+# Step: Handle NaNs and bad values
+# Replace known bad placeholders (like '--', 'N/A', 'nan', '') with np.nan
+df.replace(['--', 'N/A', 'n/a', 'na', 'NaN', 'nan', '', ' '], np.nan, inplace=True)
+
+# Drop rows where all numeric columns are NaN (completely empty lines)
+numeric_cols = df.select_dtypes(include=['int64','float64']).columns
+df = df.dropna(axis=0, how='all', subset=numeric_cols)
+
+# Optionally, fill remaining NaNs with 0 (only if business rule requires it)
+# df[numeric_cols] = df[numeric_cols].fillna(0)
+
+print("✓ Cleaned NaNs and bad values: replaced placeholders with NaN and dropped empty rows")
+
+
 ═══════════════════════════════════════════════════════════════════════════════
 ## PHASE 3: VERIFICATION BEFORE FINAL ANALYSIS
 ═══════════════════════════════════════════════════════════════════════════════
@@ -323,6 +337,7 @@ print(f"Based on {len(df)} data rows (excluding {original_shape[0] - df.shape[0]
 4. **Persist changes early**: Clean the data in first 2-3 queries, then run analytics
 5. **Verify before answering**: Always check your cleaned data before calculating final answer
 6. **Be paranoid about totals**: They hide in first rows, last rows, middle sections, anywhere!
+Handle NaNs explicitly: replace known placeholders (--, N/A, blanks) with NaN, drop rows where all numeric values are missing, and only convert NaNs to zeros if explicitly required by the business rule.
 
 ═══════════════════════════════════════════════════════════════════════════════
 ## COMMON PITFALLS TO AVOID
@@ -334,7 +349,8 @@ print(f"Based on {len(df)} data rows (excluding {original_shape[0] - df.shape[0]
 ❌ **DON'T**: Assume clean data → Always verify before final calculations
 ❌ **DON'T**: Ignore middle subtotals → Use regex to find ALL aggregate rows
 ❌ **DON'T**: Forget to state sheet name → Always start response with sheet name
-
+❌ DON’T: Leave placeholder values (--, N/A, blanks) unhandled — they’ll skew counts and averages.
+❌ DON’T: Blindly fill all NaNs with 0 without clarifying the business meaning.
 ✓ **DO**: Run comprehensive exploration first (1-2 queries)
 ✓ **DO**: Use regex to find ALL suspicious rows at once
 ✓ **DO**: Clean all columns that need it in one pass
